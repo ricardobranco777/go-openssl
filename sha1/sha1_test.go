@@ -8,9 +8,11 @@ package sha1
 
 import (
 	//"bytes"
+	"crypto/sha1"
 	//"crypto/rand"
 	//"encoding"
 	"fmt"
+	"hash"
 	"io"
 	"testing"
 )
@@ -75,13 +77,13 @@ func TestGolden(t *testing.T) {
 				c.Sum(nil)
 				io.WriteString(c, g.in[len(g.in)/2:])
 				sum = c.Sum(nil)
-			/*
-			case 3:
-				io.WriteString(c, g.in[0:len(g.in)/2])
-				c.(*digest).ConstantTimeSum(nil)
-				io.WriteString(c, g.in[len(g.in)/2:])
-				sum = c.(*digest).ConstantTimeSum(nil)
-			*/
+				/*
+					case 3:
+						io.WriteString(c, g.in[0:len(g.in)/2])
+						c.(*digest).ConstantTimeSum(nil)
+						io.WriteString(c, g.in[len(g.in)/2:])
+						sum = c.(*digest).ConstantTimeSum(nil)
+				*/
 			}
 			s := fmt.Sprintf("%x", sum)
 			if s != g.out {
@@ -158,10 +160,10 @@ func TestBlockGeneric(t *testing.T) {
 }
 */
 
-var bench = New()
-var buf = make([]byte, 8192)
+var buf = make([]byte, 16384)
 
-func benchmarkSize(b *testing.B, size int) {
+func benchmarkSize(new func() hash.Hash, b *testing.B, size int) {
+	bench := new()
 	b.SetBytes(int64(size))
 	sum := make([]byte, bench.Size())
 	for i := 0; i < b.N; i++ {
@@ -171,18 +173,34 @@ func benchmarkSize(b *testing.B, size int) {
 	}
 }
 
-func BenchmarkHash8Bytes(b *testing.B) {
-	benchmarkSize(b, 8)
+func BenchmarkHash8Bytes_OpenSSL(b *testing.B) {
+	benchmarkSize(New, b, 8)
 }
 
-func BenchmarkHash320Bytes(b *testing.B) {
-	benchmarkSize(b, 320)
+func BenchmarkHash8Bytes(b *testing.B) {
+	benchmarkSize(sha1.New, b, 8)
+}
+
+func BenchmarkHash1K_OpenSSL(b *testing.B) {
+	benchmarkSize(New, b, 1024)
 }
 
 func BenchmarkHash1K(b *testing.B) {
-	benchmarkSize(b, 1024)
+	benchmarkSize(sha1.New, b, 1024)
+}
+
+func BenchmarkHash8K_OpenSSL(b *testing.B) {
+	benchmarkSize(New, b, 8192)
 }
 
 func BenchmarkHash8K(b *testing.B) {
-	benchmarkSize(b, 8192)
+	benchmarkSize(sha1.New, b, 8192)
+}
+
+func BenchmarkHash16K_OpenSSL(b *testing.B) {
+	benchmarkSize(New, b, 16384)
+}
+
+func BenchmarkHash16K(b *testing.B) {
+	benchmarkSize(sha1.New, b, 16384)
 }

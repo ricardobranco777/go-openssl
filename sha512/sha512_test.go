@@ -8,6 +8,7 @@ package sha512
 
 import (
 	//"bytes"
+	"crypto/sha512"
 	//"crypto/rand"
 	//"encoding"
 	"encoding/hex"
@@ -835,10 +836,10 @@ func TestBlockGeneric(t *testing.T) {
 }
 */
 
-var bench = New()
-var buf = make([]byte, 8192)
+var buf = make([]byte, 16384)
 
-func benchmarkSize(b *testing.B, size int) {
+func benchmarkSize(new func() hash.Hash, b *testing.B, size int) {
+	bench := new()
 	b.SetBytes(int64(size))
 	sum := make([]byte, bench.Size())
 	for i := 0; i < b.N; i++ {
@@ -848,14 +849,34 @@ func benchmarkSize(b *testing.B, size int) {
 	}
 }
 
+func BenchmarkHash8Bytes_OpenSSL(b *testing.B) {
+	benchmarkSize(New, b, 8)
+}
+
 func BenchmarkHash8Bytes(b *testing.B) {
-	benchmarkSize(b, 8)
+	benchmarkSize(sha512.New, b, 8)
+}
+
+func BenchmarkHash1K_OpenSSL(b *testing.B) {
+	benchmarkSize(New, b, 1024)
 }
 
 func BenchmarkHash1K(b *testing.B) {
-	benchmarkSize(b, 1024)
+	benchmarkSize(sha512.New, b, 1024)
+}
+
+func BenchmarkHash8K_OpenSSL(b *testing.B) {
+	benchmarkSize(New, b, 8192)
 }
 
 func BenchmarkHash8K(b *testing.B) {
-	benchmarkSize(b, 8192)
+	benchmarkSize(sha512.New, b, 8192)
+}
+
+func BenchmarkHash16K_OpenSSL(b *testing.B) {
+	benchmarkSize(New, b, 16384)
+}
+
+func BenchmarkHash16K(b *testing.B) {
+	benchmarkSize(sha512.New, b, 16384)
 }

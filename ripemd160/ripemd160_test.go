@@ -9,6 +9,8 @@ package ripemd160
 
 import (
 	"fmt"
+	"golang.org/x/crypto/ripemd160"
+	"hash"
 	"io"
 	"testing"
 )
@@ -65,8 +67,47 @@ func TestMillionA(t *testing.T) {
 	}
 }
 
-func BenchmarkMillionA(b *testing.B) {
+var buf = make([]byte, 16384)
+
+func benchmarkSize(new func() hash.Hash, b *testing.B, size int) {
+	bench := new()
+	b.SetBytes(int64(size))
+	sum := make([]byte, bench.Size())
 	for i := 0; i < b.N; i++ {
-		millionA()
+		bench.Reset()
+		bench.Write(buf[:size])
+		bench.Sum(sum[:0])
 	}
+}
+
+func BenchmarkHash8Bytes_OpenSSL(b *testing.B) {
+	benchmarkSize(New, b, 8)
+}
+
+func BenchmarkHash8Bytes(b *testing.B) {
+	benchmarkSize(ripemd160.New, b, 8)
+}
+
+func BenchmarkHash1K_OpenSSL(b *testing.B) {
+	benchmarkSize(New, b, 1024)
+}
+
+func BenchmarkHash1K(b *testing.B) {
+	benchmarkSize(ripemd160.New, b, 1024)
+}
+
+func BenchmarkHash8K_OpenSSL(b *testing.B) {
+	benchmarkSize(New, b, 8192)
+}
+
+func BenchmarkHash8K(b *testing.B) {
+	benchmarkSize(ripemd160.New, b, 8192)
+}
+
+func BenchmarkHash16K_OpenSSL(b *testing.B) {
+	benchmarkSize(New, b, 16384)
+}
+
+func BenchmarkHash16K(b *testing.B) {
+	benchmarkSize(ripemd160.New, b, 16384)
 }

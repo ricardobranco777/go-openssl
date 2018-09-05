@@ -6,12 +6,14 @@ package md5
 
 import (
 	//"bytes"
+	"crypto/md5"
 	//"crypto/rand"
 	//"encoding"
 	"fmt"
+	"hash"
 	"io"
 	"testing"
-	"unsafe"
+	//"unsafe"
 )
 
 type md5Test struct {
@@ -157,19 +159,12 @@ func TestBlockGeneric(t *testing.T) {
 }
 */
 
-var bench = New()
-var buf = make([]byte, 8192+1)
-var sum = make([]byte, bench.Size())
+var buf = make([]byte, 16384)
 
-func benchmarkSize(b *testing.B, size int, unaligned bool) {
+func benchmarkSize(new func() hash.Hash, b *testing.B, size int) {
+	bench := new()
 	b.SetBytes(int64(size))
-	buf := buf
-	if unaligned {
-		if uintptr(unsafe.Pointer(&buf[0]))&(unsafe.Alignof(uint32(0))-1) == 0 {
-			buf = buf[1:]
-		}
-	}
-	b.ResetTimer()
+	sum := make([]byte, bench.Size())
 	for i := 0; i < b.N; i++ {
 		bench.Reset()
 		bench.Write(buf[:size])
@@ -177,26 +172,34 @@ func benchmarkSize(b *testing.B, size int, unaligned bool) {
 	}
 }
 
+func BenchmarkHash8Bytes_OpenSSL(b *testing.B) {
+	benchmarkSize(New, b, 8)
+}
+
 func BenchmarkHash8Bytes(b *testing.B) {
-	benchmarkSize(b, 8, false)
+	benchmarkSize(md5.New, b, 8)
+}
+
+func BenchmarkHash1K_OpenSSL(b *testing.B) {
+	benchmarkSize(New, b, 1024)
 }
 
 func BenchmarkHash1K(b *testing.B) {
-	benchmarkSize(b, 1024, false)
+	benchmarkSize(md5.New, b, 1024)
+}
+
+func BenchmarkHash8K_OpenSSL(b *testing.B) {
+	benchmarkSize(New, b, 8192)
 }
 
 func BenchmarkHash8K(b *testing.B) {
-	benchmarkSize(b, 8192, false)
+	benchmarkSize(md5.New, b, 8192)
 }
 
-func BenchmarkHash8BytesUnaligned(b *testing.B) {
-	benchmarkSize(b, 8, true)
+func BenchmarkHash16K_OpenSSL(b *testing.B) {
+	benchmarkSize(New, b, 16384)
 }
 
-func BenchmarkHash1KUnaligned(b *testing.B) {
-	benchmarkSize(b, 1024, true)
-}
-
-func BenchmarkHash8KUnaligned(b *testing.B) {
-	benchmarkSize(b, 8192, true)
+func BenchmarkHash16K(b *testing.B) {
+	benchmarkSize(md5.New, b, 16384)
 }

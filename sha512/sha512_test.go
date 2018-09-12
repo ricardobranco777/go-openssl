@@ -839,7 +839,7 @@ func TestBlockGeneric(t *testing.T) {
 var buf = make([]byte, 16384)
 
 func benchmarkSize(new func() hash.Hash, b *testing.B, size int) {
-	bench := New()
+	bench := new()
 	b.SetBytes(int64(size))
 	sum := make([]byte, bench.Size())
 	for i := 0; i < b.N; i++ {

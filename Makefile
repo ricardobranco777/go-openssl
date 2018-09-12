@@ -1,4 +1,4 @@
-SSL_LIB_DIR = $(shell ls -d /usr/local/ssl/lib64)
+SSL_LIB_DIR = $(shell ls -d /usr/local/ssl/lib64 2>/dev/null)
 ifeq ($(SSL_LIB_DIR),)
 	SSL_LIB_DIR := /usr/local/ssl/lib
 endif

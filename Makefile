@@ -1,5 +1,7 @@
 SSL_LIB_DIR = $(shell ls -d /usr/local/ssl/lib64)
-SSL_LIB_DIR ?= /usr/local/ssl/lib
+ifeq ($(SSL_LIB_DIR),)
+	SSL_LIB_DIR := /usr/local/ssl/lib
+endif
 
 test:
 	@LD_LIBRARY_PATH=${SSL_LIB_DIR} go test github.com/ricardobranco777/go-openssl/md4
